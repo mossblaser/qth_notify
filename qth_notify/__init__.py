@@ -12,11 +12,12 @@ import platform
 import qth
 
 import desktop_notify
+from dbus_next import Variant
 
 
 async def on_notify(_topic: str, message: Any) -> None:
     summary = str(message)
-    duration = None
+    duration = 30  # Default to 30s
     body = ""
     if isinstance(message, list):
         summary = message[0]
@@ -26,6 +27,9 @@ async def on_notify(_topic: str, message: Any) -> None:
             duration = message[2]
     
     notify = desktop_notify.aio.Notify(summary, body)
+    # In GNOME shell, prevent notifications accumulating in the notifications
+    # drawer
+    notify.set_hint("transient", Variant("i", 1))
     if duration is not None:
         notify.set_timeout(int(duration * 1000))
     await notify.show()
